@@ -31,4 +31,10 @@ public class BranchPersistenceAdapter implements BranchRepositoryPort {
         return branchR2dbcRepository.findByFranchiseId(franchiseId)
                 .map(branchMapper::toBranch);
     }
+
+    @Override
+    public Mono<Branch> findById(UUID id) {
+        return branchR2dbcRepository.findById(id)
+                .map(branchMapper::toBranch);
+    }
 }

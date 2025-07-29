@@ -1,5 +1,6 @@
 package com.example.franchise_api.infrastructure.entrypoints;
 
+import com.example.franchise_api.infrastructure.entrypoints.handler.BranchHandlerImpl;
 import com.example.franchise_api.infrastructure.entrypoints.handler.FranchiseHandlerImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +13,8 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 @Configuration
 public class RouterFranchise {
     @Bean
-    public RouterFunction<ServerResponse> franchiseRoutes(FranchiseHandlerImpl handler) {
+    public RouterFunction<ServerResponse> franchiseRoutes(FranchiseHandlerImpl handler,
+                                                          BranchHandlerImpl branchHandler) {
         // Aquí definimos la ruta para crear una franquicia
         return RouterFunctions.route(
                 POST("/api/franchises"),
@@ -20,6 +22,9 @@ public class RouterFranchise {
         ) .andRoute(
                 POST("/api/franchises/{franchiseId}/branches"),
                 handler::addBranchToFranchise
+        ).andRoute(
+                POST("/api/branches/{branchId}/products"),
+                branchHandler::addProductToBranch
         );
 
     }

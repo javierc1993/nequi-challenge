@@ -8,4 +8,5 @@ import java.util.UUID;
 public interface BranchRepositoryPort {
     Mono<Branch> save(Branch branch);
     Flux<Branch> findByFranchiseId(UUID franchiseId);
+    Mono<Branch> findById(UUID id);
 }

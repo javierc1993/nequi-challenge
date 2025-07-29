@@ -1,10 +1,8 @@
 package com.example.franchise_api.application.config;
 
-import com.example.franchise_api.domain.spi.BranchRepositoryPort;
-import com.example.franchise_api.domain.spi.EmailValidatorGateway;
-import com.example.franchise_api.domain.spi.FranchiseRepositoryPort;
-import com.example.franchise_api.domain.spi.UserPersistencePort;
+import com.example.franchise_api.domain.spi.*;
 import com.example.franchise_api.domain.usecase.AddBranchToFranchiseUseCase;
+import com.example.franchise_api.domain.usecase.AddProductToBranchUseCase;
 import com.example.franchise_api.domain.usecase.CreateFranchiseUseCase;
 import com.example.franchise_api.domain.usecase.UserUseCase;
 import com.example.franchise_api.domain.api.UserServicePort;
@@ -45,5 +43,13 @@ public class UseCasesConfig {
                 BranchRepositoryPort branchRepositoryPort) {
 
                 return new AddBranchToFranchiseUseCase(franchiseRepositoryPort, branchRepositoryPort);
+        }
+
+        @Bean
+        public AddProductToBranchUseCase addProductToBranchUseCase(
+                ProductRepositoryPort productRepositoryPort,
+                BranchRepositoryPort branchRepositoryPort) {
+
+                return new AddProductToBranchUseCase(branchRepositoryPort,productRepositoryPort );
         }
 }
