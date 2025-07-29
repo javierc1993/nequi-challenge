@@ -1,9 +1,10 @@
 FROM eclipse-temurin:17-jdk-jammy as builder
 
 WORKDIR /workspace/app
+COPY . .
 
 RUN chmod +x ./gradlew
-COPY . .
+
 
 RUN ./gradlew bootJar
 
