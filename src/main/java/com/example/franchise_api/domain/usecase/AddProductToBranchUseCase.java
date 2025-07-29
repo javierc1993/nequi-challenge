@@ -1,5 +1,7 @@
 package com.example.franchise_api.domain.usecase;
 
+import com.example.franchise_api.domain.enums.TechnicalMessage;
+import com.example.franchise_api.domain.exceptions.BusinessException;
 import com.example.franchise_api.domain.model.Product;
 import com.example.franchise_api.domain.spi.BranchRepositoryPort;
 import com.example.franchise_api.domain.spi.ProductRepositoryPort;
@@ -15,7 +17,11 @@ public class AddProductToBranchUseCase {
 
     public Mono<Product> addProduct(UUID branchId, Product newProduct) {
         // 1. Validamos que la sucursal exista
-        return branchRepositoryPort.findById(branchId)
+        return productRepositoryPort.findByBranchIdAndActiveTrue(branchId)
+                .hasElements()
+                .filter(exists -> !exists)
+                .switchIfEmpty(Mono.error(new BusinessException(TechnicalMessage.USER_ALREADY_EXISTS)))
+                .flatMap(exists -> branchRepositoryPort.findById(branchId))
                 .switchIfEmpty(Mono.error(new RuntimeException("Branch not found with id: " + branchId)))
                 // 2. Si existe, creamos el producto y lo guardamos
                 .flatMap(branch -> {

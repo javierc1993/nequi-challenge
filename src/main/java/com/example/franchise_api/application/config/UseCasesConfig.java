@@ -62,6 +62,14 @@ public class UseCasesConfig {
                 return new UpdateProductStockUseCase(productRepositoryPort );
         }
 
+        @Bean
+        public GetHighestStockProductReportUseCase getHighestStockProductReportUseCase(
+                FranchiseRepositoryPort franchiseRepositoryPort,
+                BranchRepositoryPort branchRepositoryPort,
+                ProductRepositoryPort productRepositoryPort) {
+                return new GetHighestStockProductReportUseCase(franchiseRepositoryPort,branchRepositoryPort,productRepositoryPort );
+        }
+
 
 
 }

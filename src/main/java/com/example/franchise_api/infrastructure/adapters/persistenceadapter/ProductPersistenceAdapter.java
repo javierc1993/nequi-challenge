@@ -6,6 +6,7 @@ import com.example.franchise_api.infrastructure.adapters.persistenceadapter.mapp
 import com.example.franchise_api.infrastructure.adapters.persistenceadapter.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
@@ -29,6 +30,12 @@ public class ProductPersistenceAdapter implements ProductRepositoryPort {
     @Override
     public Mono<Product> findById(UUID id) {
         return productR2dbcRepository.findById(id)
+                .map(productMapper::toProduct);
+    }
+
+    @Override
+    public Flux<Product> findByBranchIdAndActiveTrue(UUID branchId) {
+        return productR2dbcRepository.findByBranchIdAndActiveTrue(branchId)
                 .map(productMapper::toProduct);
     }
 

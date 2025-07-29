@@ -4,6 +4,8 @@ package com.example.franchise_api.infrastructure.entrypoints.handler;
 import com.example.franchise_api.domain.model.Branch;
 import com.example.franchise_api.domain.usecase.AddBranchToFranchiseUseCase;
 import com.example.franchise_api.domain.usecase.CreateFranchiseUseCase;
+import com.example.franchise_api.domain.usecase.GetHighestStockProductReportUseCase;
+import com.example.franchise_api.infrastructure.entrypoints.dto.BranchHighestStockReport;
 import com.example.franchise_api.infrastructure.entrypoints.dto.CreateBranchRequest;
 import com.example.franchise_api.infrastructure.entrypoints.dto.CreateFranchiseRequest;
 import com.example.franchise_api.infrastructure.entrypoints.mapper.FranchiseRestMapper;
@@ -13,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -24,6 +27,7 @@ public class FranchiseHandlerImpl {
     private final CreateFranchiseUseCase createFranchiseUseCase;
     private final FranchiseRestMapper franchiseRestMapper;
     private final AddBranchToFranchiseUseCase addBranchToFranchiseUseCase;
+    private final GetHighestStockProductReportUseCase getHighestStockProductReportUseCase;
 
     /**
      * Maneja la petición POST para crear una nueva franquicia.
@@ -64,7 +68,6 @@ public class FranchiseHandlerImpl {
                 });
     }
 
-    // ----- NUEVO MÉTODO DEL HANDLER -----
     public Mono<ServerResponse> addBranchToFranchise(ServerRequest request) {
         // Extraemos el 'franchiseId' de la URL
         UUID franchiseId = UUID.fromString(request.pathVariable("franchiseId"));
@@ -83,6 +86,19 @@ public class FranchiseHandlerImpl {
                 .onErrorResume(RuntimeException.class, e -> ServerResponse
                         .status(HttpStatus.NOT_FOUND) // HTTP 404
                         .bodyValue(Map.of("error", e.getMessage())));
+    }
+
+    public Mono<ServerResponse> getHighestStockReport(ServerRequest request) {
+        UUID franchiseId = UUID.fromString(request.pathVariable("franchiseId"));
+
+        // El UseCase ya devuelve un Flux con el DTO que necesitamos.
+        Flux<BranchHighestStockReport> reportFlux = getHighestStockProductReportUseCase.getReport(franchiseId);
+
+        // Simplemente pasamos ese Flux al cuerpo de la respuesta.
+        // Spring se encargará de recolectarlo en un arreglo JSON.
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(reportFlux, BranchHighestStockReport.class);
     }
 
 
