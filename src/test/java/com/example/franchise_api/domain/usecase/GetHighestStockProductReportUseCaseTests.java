@@ -50,7 +50,7 @@ public class GetHighestStockProductReportUseCaseTests {
 
         when(franchiseRepositoryPort.findById(franchiseId)).thenReturn(Mono.just(franchise));
         when(branchRepositoryPort.findByFranchiseId(franchiseId)).thenReturn(Flux.just(branch1, branch2));
-        when(productRepositoryPort.findByBranchIdAndActiveTrue(branch1.id())).thenReturn(Flux.just(p1_low, p1_high));
+        when(productRepositoryPort.findByBranchIdAndActiveTrue(branch1.id())).thenReturn(Flux.just(p2_only,p1_low, p1_high));
         when(productRepositoryPort.findByBranchIdAndActiveTrue(branch2.id())).thenReturn(Flux.just(p2_only));
 
         // --- ACT ---
