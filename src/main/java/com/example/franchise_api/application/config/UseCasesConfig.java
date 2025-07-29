@@ -77,6 +77,12 @@ public class UseCasesConfig {
                 return new UpdateFranchiseNameUseCase(franchiseRepositoryPort,branchRepositoryPort );
         }
 
+        @Bean
+        public UpdateBranchNameUsecase updateBranchNameUseCase(
+                BranchRepositoryPort branchRepositoryPort) {
+                return new UpdateBranchNameUsecase(branchRepositoryPort );
+        }
+
 
 
 }

@@ -37,6 +37,9 @@ public class RouterFranchise {
         ).andRoute(
                 PATCH("/api/franchises/{franchiseId}/name"),
                 handler::updateFranchiseName
+        ).andRoute(
+                PATCH("/api/branches/{branchId}/name"),
+                branchHandler::updateBranchName
         );
 
     }
