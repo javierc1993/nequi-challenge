@@ -1,5 +1,7 @@
 package com.example.franchise_api.domain.usecase;
 
+import com.example.franchise_api.domain.enums.TechnicalMessage;
+import com.example.franchise_api.domain.exceptions.BusinessException;
 import com.example.franchise_api.domain.model.Franchise;
 import com.example.franchise_api.domain.spi.BranchRepositoryPort;
 import com.example.franchise_api.domain.spi.FranchiseRepositoryPort;
@@ -14,22 +16,18 @@ public class UpdateFranchiseNameUseCase {
     private final BranchRepositoryPort branchRepositoryPort;
 
     public Mono<Franchise> updateFranchiseName(UUID franchiseId, String newName) {
-        // 1. Buscamos la franquicia existente.
+
         return franchiseRepositoryPort.findById(franchiseId)
-                .switchIfEmpty(Mono.error(new RuntimeException("Franchise not found with id: " + franchiseId)))
-                // 2. Si existe, creamos una copia inmutable con el nuevo nombre.
+                .switchIfEmpty(Mono.error(new BusinessException(TechnicalMessage.FRANCHISE_NOT_FOUND , franchiseId)))
+
                 .flatMap(franchise -> {
-                    // La validación del nombre ocurre en el constructor del record.
                     Franchise updatedFranchise = new Franchise(
                             franchise.id(),
-                            newName, // El nuevo nombre
-                            franchise.branches() // Mantenemos las sucursales existentes
+                            newName,
+                            franchise.branches()
                     );
-                    // 3. Guardamos la franquicia actualizada.
                     return franchiseRepositoryPort.save(updatedFranchise);
                 })
-                // 4. El save devuelve una franquicia sin la lista de sucursales,
-                //    así que las volvemos a cargar para dar una respuesta completa.
                 .flatMap(savedFranchise ->
                         branchRepositoryPort.findByFranchiseId(savedFranchise.id())
                                 .collectList()

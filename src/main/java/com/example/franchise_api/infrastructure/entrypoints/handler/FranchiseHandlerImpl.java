@@ -20,6 +20,8 @@ import reactor.core.publisher.Mono;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.example.franchise_api.infrastructure.entrypoints.util.Constants.ERROR;
+
 @Component
 @RequiredArgsConstructor
 public class FranchiseHandlerImpl {
@@ -36,21 +38,16 @@ public class FranchiseHandlerImpl {
      */
     public Mono<ServerResponse> createFranchise(ServerRequest request) {
         return request.bodyToMono(CreateFranchiseRequest.class)
-                // 1. Deserializa el JSON del body a nuestro DTO.
                 .map(franchiseRestMapper::toFranchise)
-                // 2. Mapea el DTO a nuestro modelo de Dominio.
                 .flatMap(createFranchiseUseCase::create)
-                // 3. Delega la lógica de negocio al Caso de Uso.
                 .flatMap(savedFranchise -> ServerResponse
                         .status(HttpStatus.CREATED) // 4a. Si todo va bien, prepara una respuesta 201 CREATED.
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(savedFranchise))
-                // 4b. Manejo de errores controlados (ej: validación del dominio).
                 .onErrorResume(IllegalArgumentException.class, e -> ServerResponse
                         .status(HttpStatus.BAD_REQUEST) // HTTP 400
                         .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(Map.of("error", e.getMessage())))
-                // 4c. Manejo de errores inesperados.
+                        .bodyValue(Map.of(ERROR, e.getMessage())))
                 .onErrorResume(Exception.class, e -> {
                     // ===== INICIO DEL CÓDIGO AÑADIDO PARA DEBUG =====
                     System.err.println("************************************************************");
@@ -64,38 +61,30 @@ public class FranchiseHandlerImpl {
                     return ServerResponse
                             .status(HttpStatus.INTERNAL_SERVER_ERROR) // HTTP 500
                             .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(Map.of("error", "An unexpected error occurred."));
+                            .bodyValue(Map.of(ERROR, "An unexpected error occurred."));
                 });
     }
 
     public Mono<ServerResponse> addBranchToFranchise(ServerRequest request) {
-        // Extraemos el 'franchiseId' de la URL
         UUID franchiseId = UUID.fromString(request.pathVariable("franchiseId"));
 
-        // Creamos un Mono para el objeto Branch a partir del body
         Mono<Branch> branchMono = request.bodyToMono(CreateBranchRequest.class)
-                .map(franchiseRestMapper::toBranch); // Necesitarás un toBranch en el mapper
-
-        // Combinamos la información del path y del body para llamar al UseCase
+                .map(franchiseRestMapper::toBranch);
         return branchMono
                 .flatMap(branch -> addBranchToFranchiseUseCase.addBranch(franchiseId, branch))
                 .flatMap(savedBranch -> ServerResponse.status(HttpStatus.CREATED)
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(savedBranch))
-                // Manejamos el error "Franchise not found" que definimos en el UseCase
                 .onErrorResume(RuntimeException.class, e -> ServerResponse
                         .status(HttpStatus.NOT_FOUND) // HTTP 404
-                        .bodyValue(Map.of("error", e.getMessage())));
+                        .bodyValue(Map.of(ERROR, e.getMessage())));
     }
 
     public Mono<ServerResponse> getHighestStockReport(ServerRequest request) {
         UUID franchiseId = UUID.fromString(request.pathVariable("franchiseId"));
 
-        // El UseCase ya devuelve un Flux con el DTO que necesitamos.
         Flux<BranchHighestStockReport> reportFlux = getHighestStockProductReportUseCase.getReport(franchiseId);
 
-        // Simplemente pasamos ese Flux al cuerpo de la respuesta.
-        // Spring se encargará de recolectarlo en un arreglo JSON.
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(reportFlux, BranchHighestStockReport.class);
@@ -111,10 +100,10 @@ public class FranchiseHandlerImpl {
                         .bodyValue(updatedFranchise))
                 .onErrorResume(RuntimeException.class, e -> ServerResponse
                         .status(HttpStatus.NOT_FOUND)
-                        .bodyValue(Map.of("error", e.getMessage())))
+                        .bodyValue(Map.of(ERROR, e.getMessage())))
                 .onErrorResume(IllegalArgumentException.class, e -> ServerResponse
                         .badRequest()
-                        .bodyValue(Map.of("error", e.getMessage())));
+                        .bodyValue(Map.of(ERROR, e.getMessage())));
     }
 
 

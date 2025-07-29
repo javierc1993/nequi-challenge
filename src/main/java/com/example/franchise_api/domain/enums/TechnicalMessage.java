@@ -11,13 +11,11 @@ public enum TechnicalMessage {
     INTERNAL_ERROR_IN_ADAPTERS("PRC501","Something went wrong in adapters, please try again", ""),
     INVALID_REQUEST("400", "Bad Request, please verify data", ""),
     INVALID_PARAMETERS(INVALID_REQUEST.getCode(), "Bad Parameters, please verify data", ""),
-    INVALID_EMAIL("403", "Invalid email, please verify", "email"),
-    INVALID_MESSAGE_ID("404", "Invalid Message ID, please verify", "messageId"),
     UNSUPPORTED_OPERATION("501", "Method not supported, please try again", ""),
-    USER_CREATED("201", "User created successfully", ""),
-    ADAPTER_RESPONSE_NOT_FOUND("404-0", "invalid email, please verify", ""),
-    USER_ALREADY_EXISTS("400","El usuario ya está registrado." ,"" );
-
+    FRANCHISE_NOT_FOUND("404", "franchise not found with id: %s", ""),
+    BRANCH_NOT_FOUND("404", "Branch not found with id: %s", ""),
+    PRODUCT_NOT_FOUND("404", "Product not found with id: %s", ""),
+    PRODUCT_ALREADY_EXIST("400","The product already exist : %s" ,"" );
     private final String code;
     private final String message;
     private final String param;

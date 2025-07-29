@@ -16,6 +16,8 @@ import reactor.core.publisher.Mono;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.example.franchise_api.infrastructure.entrypoints.util.Constants.ERROR;
+
 @Component
 @RequiredArgsConstructor
 public class BranchHandlerImpl {
@@ -29,30 +31,30 @@ public class BranchHandlerImpl {
         UUID branchId = UUID.fromString(request.pathVariable("branchId"));
 
         return request.bodyToMono(CreateProductRequest.class)
-                .map(productRestMapper::toProduct)// Mapeo simple
+                .map(productRestMapper::toProduct)
                 .flatMap(product -> addProductToBranchUseCase.addProduct(branchId, product))
                 .flatMap(savedProduct -> ServerResponse.status(HttpStatus.CREATED)
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(savedProduct))
                 .onErrorResume(RuntimeException.class, e -> ServerResponse
                         .status(HttpStatus.NOT_FOUND)
-                        .bodyValue(Map.of("error", e.getMessage())));
+                        .bodyValue(Map.of(ERROR, e.getMessage())));
     }
 
     public Mono<ServerResponse> updateBranchName(ServerRequest request) {
         UUID branchId = UUID.fromString(request.pathVariable("branchId"));
 
-        return request.bodyToMono(UpdateNameRequest.class) // Reutilizamos el DTO genérico
+        return request.bodyToMono(UpdateNameRequest.class)
                 .flatMap(updateRequest -> updateBranchNameUseCase.updateBranchName(branchId, updateRequest.name()))
                 .flatMap(updatedBranch -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(updatedBranch))
                 .onErrorResume(RuntimeException.class, e -> ServerResponse
                         .status(HttpStatus.NOT_FOUND)
-                        .bodyValue(Map.of("error", e.getMessage())))
+                        .bodyValue(Map.of(ERROR, e.getMessage())))
                 .onErrorResume(IllegalArgumentException.class, e -> ServerResponse
                         .badRequest()
-                        .bodyValue(Map.of("error", e.getMessage())));
+                        .bodyValue(Map.of(ERROR, e.getMessage())));
     }
 
 }

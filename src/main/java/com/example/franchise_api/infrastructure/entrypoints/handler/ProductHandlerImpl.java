@@ -17,6 +17,10 @@ import reactor.core.publisher.Mono;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.example.franchise_api.infrastructure.entrypoints.util.Constants.ERROR;
+import static com.example.franchise_api.infrastructure.entrypoints.util.Constants.ALREADY_EXISTS;
+import static com.example.franchise_api.infrastructure.entrypoints.util.Constants.CANNOT_EMPTY;
+
 @Component
 @RequiredArgsConstructor
 public class ProductHandlerImpl {
@@ -28,12 +32,12 @@ public class ProductHandlerImpl {
         UUID productId = UUID.fromString(request.pathVariable("productId"));
 
         return deleteProductUseCase.deleteProduct(productId)
-                .flatMap(deactivatedProduct -> ServerResponse.ok() // Devuelve un 200 OK
+                .flatMap(deactivatedProduct -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(deactivatedProduct))
                 .onErrorResume(RuntimeException.class, e -> ServerResponse
                         .status(HttpStatus.NOT_FOUND)
-                        .bodyValue(Map.of("error", e.getMessage())));
+                        .bodyValue(Map.of(ERROR, e.getMessage())));
 
     }
 
@@ -45,14 +49,12 @@ public class ProductHandlerImpl {
                 .flatMap(updatedProduct -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(updatedProduct))
-                // Manejamos el error de producto no encontrado
                 .onErrorResume(RuntimeException.class, e -> ServerResponse
                         .status(HttpStatus.NOT_FOUND)
-                        .bodyValue(Map.of("error", e.getMessage())))
-                // Manejamos el error de validación del dominio (stock negativo)
+                        .bodyValue(Map.of(ERROR, e.getMessage())))
                 .onErrorResume(IllegalArgumentException.class, e -> ServerResponse
-                        .badRequest() // 400 Bad Request
-                        .bodyValue(Map.of("error", e.getMessage())));
+                        .badRequest()
+                        .bodyValue(Map.of(ERROR, e.getMessage())));
     }
 
     public Mono<ServerResponse> updateProductName(ServerRequest request) {
@@ -62,15 +64,6 @@ public class ProductHandlerImpl {
                 .flatMap(updateRequest -> updateProductNameUseCase.updateProductName(productId, updateRequest.name()))
                 .flatMap(updatedProduct -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(updatedProduct))
-                // Manejamos tanto el 404 como el 400 con RuntimeException
-                .onErrorResume(RuntimeException.class, e -> {
-                    // Si el error es por duplicado o inválido, es un Bad Request.
-                    if (e.getMessage().contains("already exists") || e.getMessage().contains("cannot be empty")) {
-                        return ServerResponse.badRequest().bodyValue(Map.of("error", e.getMessage()));
-                    }
-                    // Si no, es porque no se encontró el producto.
-                    return ServerResponse.status(HttpStatus.NOT_FOUND).bodyValue(Map.of("error", e.getMessage()));
-                });
+                        .bodyValue(updatedProduct));
     }
 }

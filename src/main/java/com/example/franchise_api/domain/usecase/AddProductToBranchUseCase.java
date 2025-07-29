@@ -16,14 +16,12 @@ public class AddProductToBranchUseCase {
     private final ProductRepositoryPort productRepositoryPort;
 
     public Mono<Product> addProduct(UUID branchId, Product newProduct) {
-        // 1. Validamos que la sucursal exista
         return productRepositoryPort.findByNameAndBranchIdAndActiveTrue(newProduct.name(), branchId)
                 .hasElements()
                 .filter(exists -> !exists)
-                .switchIfEmpty(Mono.error(new BusinessException(TechnicalMessage.USER_ALREADY_EXISTS)))
+                .switchIfEmpty(Mono.error(new BusinessException(TechnicalMessage.PRODUCT_ALREADY_EXIST, "")))
                 .flatMap(exists -> branchRepositoryPort.findById(branchId))
-                .switchIfEmpty(Mono.error(new RuntimeException("Branch not found with id: " + branchId)))
-                // 2. Si existe, creamos el producto y lo guardamos
+                .switchIfEmpty(Mono.error(new BusinessException(TechnicalMessage.BRANCH_NOT_FOUND, branchId)))
                 .flatMap(branch -> {
                     Product productToSave = new Product(
                             null, // ID generado por la BD

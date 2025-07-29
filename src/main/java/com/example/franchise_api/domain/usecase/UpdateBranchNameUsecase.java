@@ -1,5 +1,7 @@
 package com.example.franchise_api.domain.usecase;
 
+import com.example.franchise_api.domain.enums.TechnicalMessage;
+import com.example.franchise_api.domain.exceptions.BusinessException;
 import com.example.franchise_api.domain.model.Branch;
 import com.example.franchise_api.domain.spi.BranchRepositoryPort;
 import lombok.RequiredArgsConstructor;
@@ -12,19 +14,16 @@ public class UpdateBranchNameUsecase {
     private final BranchRepositoryPort branchRepositoryPort;
 
     public Mono<Branch> updateBranchName(UUID branchId, String newName) {
-        // 1. Buscamos la sucursal existente.
         return branchRepositoryPort.findById(branchId)
-                .switchIfEmpty(Mono.error(new RuntimeException("Branch not found with id: " + branchId)))
-                // 2. Si existe, creamos una copia inmutable con el nuevo nombre.
+                .switchIfEmpty(Mono.error(new BusinessException(TechnicalMessage.BRANCH_NOT_FOUND, branchId)))
                 .flatMap(branch -> {
-                    // La validación del nombre ocurre en el constructor del record.
+
                     Branch updatedBranch = new Branch(
                             branch.id(),
-                            newName, // El nuevo nombre
+                            newName,
                             branch.franchiseId(),
-                            branch.products() // Mantenemos los productos existentes
+                            branch.products()
                     );
-                    // 3. Guardamos la sucursal actualizada.
                     return branchRepositoryPort.save(updatedBranch);
                 });
     }

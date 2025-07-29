@@ -23,28 +23,22 @@ public class CreateFranchiseUseCase {
         Franchise franchiseToSave = new Franchise(
                 null,
                 franchiseWithBranches.name(),
-                new ArrayList<>() // La lista de sucursales se llenará después de persistir
+                new ArrayList<>()
         );
         return franchiseRepositoryPort.save(franchiseToSave)
                 .flatMap(savedFranchise -> {
-                    // 3. Una vez guardada, tenemos el `savedFranchise` con su ID.
-                    // Ahora, creamos un flujo (Flux) a partir de la lista de sucursales que venían en la petición.
                     return Flux.fromIterable(franchiseWithBranches.branches())
-                            // 4. Para cada sucursal, creamos un nuevo objeto `Branch` con el ID de la franquicia padre.
                             .map(branch -> new Branch(
                                     null,
                                     branch.name(),
-                                    savedFranchise.id(), // <-- ¡Asignamos la clave foránea!
+                                    savedFranchise.id(),
                                     new ArrayList<>()))
-                            // 5. Guardamos cada sucursal en la base de datos de forma reactiva.
                             .flatMap(branchRepositoryPort::save)
-                            // 6. Recolectamos todas las sucursales guardadas en una lista.
                             .collectList()
-                            // 7. Finalmente, creamos el objeto `Franchise` de respuesta completo.
                             .map(savedBranches -> new Franchise(
                                     savedFranchise.id(),
                                     savedFranchise.name(),
-                                    savedBranches // <-- La lista de sucursales ya persistidas
+                                    savedBranches
                             ));
                 });
     }
