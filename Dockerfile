@@ -4,17 +4,12 @@ FROM eclipse-temurin:17-jdk-jammy as builder
 # Establece el directorio de trabajo dentro del contenedor
 WORKDIR /workspace/app
 
-# Copia los archivos de Gradle para descargar dependencias
-COPY gradlew .
-COPY gradle gradle
-COPY build.gradle .
-COPY settings.gradle .
+RUN apt-get update && apt-get install -y git
 
-# Descarga las dependencias (esto crea una capa en caché)
-RUN ./gradlew dependencies
+RUN git clone https://gitlab.com/javier.cuchumbe/nequi-challenge.git .
 
-# Copia el código fuente y construye la aplicación
-COPY src src
+RUN chmod +x ./gradlew
+
 RUN ./gradlew bootJar
 
 # Etapa 2: Ejecución (Runtime) - Usa una imagen más ligera solo con el JRE
