@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface ProductRepository extends ReactiveCrudRepository<ProductEntity, UUID> {
     Flux<ProductEntity> findByBranchIdAndActiveTrue(UUID branchId);
+    Flux<ProductEntity> findByNameAndBranchIdAndActiveTrue(String name, UUID branchId);
 }

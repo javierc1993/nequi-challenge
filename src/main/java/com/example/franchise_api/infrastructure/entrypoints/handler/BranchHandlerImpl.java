@@ -1,8 +1,7 @@
 package com.example.franchise_api.infrastructure.entrypoints.handler;
 
-import com.example.franchise_api.domain.model.Product;
 import com.example.franchise_api.infrastructure.entrypoints.dto.CreateProductRequest;
-import com.example.franchise_api.infrastructure.entrypoints.dto.UpdateBranchNameRequest;
+import com.example.franchise_api.infrastructure.entrypoints.dto.UpdateNameRequest;
 import com.example.franchise_api.infrastructure.entrypoints.mapper.ProductRestMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -43,7 +42,7 @@ public class BranchHandlerImpl {
     public Mono<ServerResponse> updateBranchName(ServerRequest request) {
         UUID branchId = UUID.fromString(request.pathVariable("branchId"));
 
-        return request.bodyToMono(UpdateBranchNameRequest.class) // Reutilizamos el DTO genérico
+        return request.bodyToMono(UpdateNameRequest.class) // Reutilizamos el DTO genérico
                 .flatMap(updateRequest -> updateBranchNameUseCase.updateBranchName(branchId, updateRequest.name()))
                 .flatMap(updatedBranch -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)

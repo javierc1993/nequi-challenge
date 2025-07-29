@@ -39,4 +39,10 @@ public class ProductPersistenceAdapter implements ProductRepositoryPort {
                 .map(productMapper::toProduct);
     }
 
+    @Override
+    public Flux<Product> findByNameAndBranchIdAndActiveTrue(String name, UUID branchId) {
+        return productR2dbcRepository.findByNameAndBranchIdAndActiveTrue(name, branchId)
+                .map(productMapper::toProduct);
+    }
+
 }

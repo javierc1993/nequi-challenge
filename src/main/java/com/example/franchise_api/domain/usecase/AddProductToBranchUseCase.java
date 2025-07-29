@@ -17,7 +17,7 @@ public class AddProductToBranchUseCase {
 
     public Mono<Product> addProduct(UUID branchId, Product newProduct) {
         // 1. Validamos que la sucursal exista
-        return productRepositoryPort.findByBranchIdAndActiveTrue(branchId)
+        return productRepositoryPort.findByNameAndBranchIdAndActiveTrue(newProduct.name(), branchId)
                 .hasElements()
                 .filter(exists -> !exists)
                 .switchIfEmpty(Mono.error(new BusinessException(TechnicalMessage.USER_ALREADY_EXISTS)))

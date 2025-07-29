@@ -6,10 +6,7 @@ import com.example.franchise_api.domain.usecase.AddBranchToFranchiseUseCase;
 import com.example.franchise_api.domain.usecase.CreateFranchiseUseCase;
 import com.example.franchise_api.domain.usecase.GetHighestStockProductReportUseCase;
 import com.example.franchise_api.domain.usecase.UpdateFranchiseNameUseCase;
-import com.example.franchise_api.infrastructure.entrypoints.dto.BranchHighestStockReport;
-import com.example.franchise_api.infrastructure.entrypoints.dto.CreateBranchRequest;
-import com.example.franchise_api.infrastructure.entrypoints.dto.CreateFranchiseRequest;
-import com.example.franchise_api.infrastructure.entrypoints.dto.UpdateNameFranchiseRequest;
+import com.example.franchise_api.infrastructure.entrypoints.dto.*;
 import com.example.franchise_api.infrastructure.entrypoints.mapper.FranchiseRestMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -107,7 +104,7 @@ public class FranchiseHandlerImpl {
     public Mono<ServerResponse> updateFranchiseName(ServerRequest request) {
         UUID franchiseId = UUID.fromString(request.pathVariable("franchiseId"));
 
-        return request.bodyToMono(UpdateNameFranchiseRequest.class)
+        return request.bodyToMono(UpdateNameRequest.class)
                 .flatMap(updateRequest -> updateFranchiseNameUseCase.updateFranchiseName(franchiseId, updateRequest.name()))
                 .flatMap(updatedFranchise -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
