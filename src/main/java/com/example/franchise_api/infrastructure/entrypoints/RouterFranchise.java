@@ -34,6 +34,9 @@ public class RouterFranchise {
         ).andRoute(
                 GET("/api/franchises/{franchiseId}/reports/highest-stock-products"),
                 handler::getHighestStockReport
+        ).andRoute(
+                PATCH("/api/franchises/{franchiseId}/name"),
+                handler::updateFranchiseName
         );
 
     }

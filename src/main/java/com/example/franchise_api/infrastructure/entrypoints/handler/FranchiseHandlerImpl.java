@@ -5,9 +5,11 @@ import com.example.franchise_api.domain.model.Branch;
 import com.example.franchise_api.domain.usecase.AddBranchToFranchiseUseCase;
 import com.example.franchise_api.domain.usecase.CreateFranchiseUseCase;
 import com.example.franchise_api.domain.usecase.GetHighestStockProductReportUseCase;
+import com.example.franchise_api.domain.usecase.UpdateFranchiseNameUseCase;
 import com.example.franchise_api.infrastructure.entrypoints.dto.BranchHighestStockReport;
 import com.example.franchise_api.infrastructure.entrypoints.dto.CreateBranchRequest;
 import com.example.franchise_api.infrastructure.entrypoints.dto.CreateFranchiseRequest;
+import com.example.franchise_api.infrastructure.entrypoints.dto.UpdateNameFranchiseRequest;
 import com.example.franchise_api.infrastructure.entrypoints.mapper.FranchiseRestMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,6 +30,7 @@ public class FranchiseHandlerImpl {
     private final FranchiseRestMapper franchiseRestMapper;
     private final AddBranchToFranchiseUseCase addBranchToFranchiseUseCase;
     private final GetHighestStockProductReportUseCase getHighestStockProductReportUseCase;
+    private final UpdateFranchiseNameUseCase updateFranchiseNameUseCase;
 
     /**
      * Maneja la petición POST para crear una nueva franquicia.
@@ -99,6 +102,22 @@ public class FranchiseHandlerImpl {
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(reportFlux, BranchHighestStockReport.class);
+    }
+
+    public Mono<ServerResponse> updateFranchiseName(ServerRequest request) {
+        UUID franchiseId = UUID.fromString(request.pathVariable("franchiseId"));
+
+        return request.bodyToMono(UpdateNameFranchiseRequest.class)
+                .flatMap(updateRequest -> updateFranchiseNameUseCase.updateFranchiseName(franchiseId, updateRequest.name()))
+                .flatMap(updatedFranchise -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(updatedFranchise))
+                .onErrorResume(RuntimeException.class, e -> ServerResponse
+                        .status(HttpStatus.NOT_FOUND)
+                        .bodyValue(Map.of("error", e.getMessage())))
+                .onErrorResume(IllegalArgumentException.class, e -> ServerResponse
+                        .badRequest()
+                        .bodyValue(Map.of("error", e.getMessage())));
     }
 
 
