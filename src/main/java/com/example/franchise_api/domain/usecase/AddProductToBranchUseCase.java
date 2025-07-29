@@ -23,6 +23,7 @@ public class AddProductToBranchUseCase {
                             null, // ID generado por la BD
                             newProduct.name(),
                             newProduct.stock(),
+                            true,
                             branch.id() // Asignamos el ID de la sucursal padre
                     );
                     return productRepositoryPort.save(productToSave);

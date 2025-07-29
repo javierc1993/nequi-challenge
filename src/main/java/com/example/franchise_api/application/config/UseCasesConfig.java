@@ -1,10 +1,7 @@
 package com.example.franchise_api.application.config;
 
 import com.example.franchise_api.domain.spi.*;
-import com.example.franchise_api.domain.usecase.AddBranchToFranchiseUseCase;
-import com.example.franchise_api.domain.usecase.AddProductToBranchUseCase;
-import com.example.franchise_api.domain.usecase.CreateFranchiseUseCase;
-import com.example.franchise_api.domain.usecase.UserUseCase;
+import com.example.franchise_api.domain.usecase.*;
 import com.example.franchise_api.domain.api.UserServicePort;
 import com.example.franchise_api.infrastructure.adapters.persistenceadapter.UserPersistenceAdapter;
 import com.example.franchise_api.infrastructure.adapters.persistenceadapter.mapper.UserEntityMapper;
@@ -52,4 +49,12 @@ public class UseCasesConfig {
 
                 return new AddProductToBranchUseCase(branchRepositoryPort,productRepositoryPort );
         }
+
+        @Bean
+        public DeleteProductUseCase deleteProductUseCase(
+                ProductRepositoryPort productRepositoryPort) {
+                return new DeleteProductUseCase(productRepositoryPort );
+        }
+
+
 }

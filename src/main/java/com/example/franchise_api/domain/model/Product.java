@@ -6,6 +6,7 @@ public record Product(
         UUID id,
         String name,
         int stock,
+        boolean active,
         UUID branchId
 ) {
 

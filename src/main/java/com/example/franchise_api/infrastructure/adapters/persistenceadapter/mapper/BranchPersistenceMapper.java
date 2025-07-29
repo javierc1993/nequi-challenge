@@ -13,5 +13,6 @@ public interface BranchPersistenceMapper {
     @Mapping(source = "id", target = "id")
     @Mapping(source = "name", target = "name")
     @Mapping(source = "franchiseId", target = "franchiseId")
+    @Mapping(target = "products", ignore = true)
     Branch toBranch(BranchEntity entity);
 }

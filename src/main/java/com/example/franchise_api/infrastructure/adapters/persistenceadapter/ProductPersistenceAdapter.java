@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 
 @Component
 @RequiredArgsConstructor
@@ -23,4 +25,11 @@ public class ProductPersistenceAdapter implements ProductRepositoryPort {
                 .flatMap(productR2dbcRepository::save)
                 .map(productMapper::toProduct);
     }
+
+    @Override
+    public Mono<Product> findById(UUID id) {
+        return productR2dbcRepository.findById(id)
+                .map(productMapper::toProduct);
+    }
+
 }

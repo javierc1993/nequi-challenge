@@ -26,8 +26,10 @@ CREATE TABLE IF NOT EXISTS branches (
 CREATE TABLE IF NOT EXISTS products (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
-    stock INTEGER NOT NULL DEFAULT 0, -- El stock es un número, por defecto 0.
+    stock INTEGER NOT NULL DEFAULT 0,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
     branch_id UUID NOT NULL,
+
 
     -- Restricción a nivel de base de datos para asegurar que el stock nunca sea negativo
     CONSTRAINT stock_non_negative CHECK (stock >= 0),

@@ -2,6 +2,7 @@ package com.example.franchise_api.infrastructure.entrypoints.handler;
 
 import com.example.franchise_api.domain.model.Product;
 import com.example.franchise_api.infrastructure.entrypoints.dto.CreateProductRequest;
+import com.example.franchise_api.infrastructure.entrypoints.mapper.ProductRestMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,13 +20,14 @@ import java.util.UUID;
 public class BranchHandlerImpl {
 
     private final AddProductToBranchUseCase addProductToBranchUseCase;
+    private final ProductRestMapper productRestMapper;
 
 
     public Mono<ServerResponse> addProductToBranch(ServerRequest request) {
         UUID branchId = UUID.fromString(request.pathVariable("branchId"));
 
         return request.bodyToMono(CreateProductRequest.class)
-                .map(dto -> new Product(null, dto.name(), dto.stock(), null)) // Mapeo simple
+                .map(productRestMapper::toProduct)// Mapeo simple
                 .flatMap(product -> addProductToBranchUseCase.addProduct(branchId, product))
                 .flatMap(savedProduct -> ServerResponse.status(HttpStatus.CREATED)
                         .contentType(MediaType.APPLICATION_JSON)

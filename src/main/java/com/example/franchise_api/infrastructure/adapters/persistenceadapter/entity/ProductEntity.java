@@ -12,5 +12,6 @@ public class ProductEntity {
     private UUID id;
     private String name;
     private int stock;
+    private boolean active;
     private UUID branchId;
 }
