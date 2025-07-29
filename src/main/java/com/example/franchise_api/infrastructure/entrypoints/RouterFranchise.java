@@ -9,8 +9,7 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import static org.springframework.web.reactive.function.server.RequestPredicates.DELETE;
-import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
+import static org.springframework.web.reactive.function.server.RequestPredicates.*;
 
 @Configuration
 public class RouterFranchise {
@@ -29,6 +28,9 @@ public class RouterFranchise {
         ).andRoute(
                 DELETE("/api/products/{productId}"),
                 productHandler::deleteProduct
+        ).andRoute(
+                PATCH("/api/products/{productId}/stock"),
+                productHandler::updateStock
         );
 
     }

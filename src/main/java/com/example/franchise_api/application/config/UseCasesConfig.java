@@ -56,5 +56,12 @@ public class UseCasesConfig {
                 return new DeleteProductUseCase(productRepositoryPort );
         }
 
+        @Bean
+        public UpdateProductStockUseCase updateProductStockUseCase(
+                ProductRepositoryPort productRepositoryPort) {
+                return new UpdateProductStockUseCase(productRepositoryPort );
+        }
+
+
 
 }
