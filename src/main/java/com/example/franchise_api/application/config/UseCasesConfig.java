@@ -4,6 +4,7 @@ import com.example.franchise_api.domain.spi.BranchRepositoryPort;
 import com.example.franchise_api.domain.spi.EmailValidatorGateway;
 import com.example.franchise_api.domain.spi.FranchiseRepositoryPort;
 import com.example.franchise_api.domain.spi.UserPersistencePort;
+import com.example.franchise_api.domain.usecase.AddBranchToFranchiseUseCase;
 import com.example.franchise_api.domain.usecase.CreateFranchiseUseCase;
 import com.example.franchise_api.domain.usecase.UserUseCase;
 import com.example.franchise_api.domain.api.UserServicePort;
@@ -30,13 +31,19 @@ public class UseCasesConfig {
                 return new UserUseCase(usersPersistencePort, emailValidatorGateway);
         }
 
-        @Bean // <-- ¡Esta es la anotación clave!
+        @Bean
         public CreateFranchiseUseCase createFranchiseUseCase(
                 FranchiseRepositoryPort franchiseRepositoryPort,
                 BranchRepositoryPort branchRepositoryPort) {
 
-                // Creamos la instancia del caso de uso, inyectándole los puertos que necesita.
-                // Spring se encargará de pasarle las implementaciones correctas (los Adapters).
                 return new CreateFranchiseUseCase(franchiseRepositoryPort, branchRepositoryPort);
+        }
+
+        @Bean
+        public AddBranchToFranchiseUseCase addBranchToFranchiseUseCase(
+                FranchiseRepositoryPort franchiseRepositoryPort,
+                BranchRepositoryPort branchRepositoryPort) {
+
+                return new AddBranchToFranchiseUseCase(franchiseRepositoryPort, branchRepositoryPort);
         }
 }

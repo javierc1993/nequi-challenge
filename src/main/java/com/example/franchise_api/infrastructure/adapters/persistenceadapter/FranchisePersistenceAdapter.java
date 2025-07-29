@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 @Component
 @RequiredArgsConstructor
 public class FranchisePersistenceAdapter  implements FranchiseRepositoryPort {
@@ -20,6 +22,12 @@ public class FranchisePersistenceAdapter  implements FranchiseRepositoryPort {
     public Mono<Franchise> save(Franchise franchise) {
         FranchiseEntity franchiseEntity = franchiseMapper.toEntity(franchise);
         return franchiseRepository.save(franchiseEntity)
+                .map(franchiseMapper::toFranchise);
+    }
+
+    @Override
+    public Mono<Franchise> findById(UUID id) {
+        return franchiseRepository.findById(id)
                 .map(franchiseMapper::toFranchise);
     }
 }

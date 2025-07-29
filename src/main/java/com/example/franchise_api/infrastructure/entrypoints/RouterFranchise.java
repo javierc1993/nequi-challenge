@@ -15,8 +15,12 @@ public class RouterFranchise {
     public RouterFunction<ServerResponse> franchiseRoutes(FranchiseHandlerImpl handler) {
         // Aquí definimos la ruta para crear una franquicia
         return RouterFunctions.route(
-                POST("/api/franchises"), // La ruta y el método HTTP
-                 handler::createFranchise  // La referencia al método en nuestro handler
+                POST("/api/franchises"),
+                 handler::createFranchise
+        ) .andRoute(
+                POST("/api/franchises/{franchiseId}/branches"),
+                handler::addBranchToFranchise
         );
+
     }
 }

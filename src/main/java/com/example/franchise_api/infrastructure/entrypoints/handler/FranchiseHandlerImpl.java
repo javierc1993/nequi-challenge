@@ -1,7 +1,10 @@
 package com.example.franchise_api.infrastructure.entrypoints.handler;
 
 
+import com.example.franchise_api.domain.model.Branch;
+import com.example.franchise_api.domain.usecase.AddBranchToFranchiseUseCase;
 import com.example.franchise_api.domain.usecase.CreateFranchiseUseCase;
+import com.example.franchise_api.infrastructure.entrypoints.dto.CreateBranchRequest;
 import com.example.franchise_api.infrastructure.entrypoints.dto.CreateFranchiseRequest;
 import com.example.franchise_api.infrastructure.entrypoints.mapper.FranchiseRestMapper;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +16,14 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 public class FranchiseHandlerImpl {
     private final CreateFranchiseUseCase createFranchiseUseCase;
     private final FranchiseRestMapper franchiseRestMapper;
+    private final AddBranchToFranchiseUseCase addBranchToFranchiseUseCase;
 
     /**
      * Maneja la petición POST para crear una nueva franquicia.
@@ -57,6 +62,27 @@ public class FranchiseHandlerImpl {
                             .contentType(MediaType.APPLICATION_JSON)
                             .bodyValue(Map.of("error", "An unexpected error occurred."));
                 });
+    }
+
+    // ----- NUEVO MÉTODO DEL HANDLER -----
+    public Mono<ServerResponse> addBranchToFranchise(ServerRequest request) {
+        // Extraemos el 'franchiseId' de la URL
+        UUID franchiseId = UUID.fromString(request.pathVariable("franchiseId"));
+
+        // Creamos un Mono para el objeto Branch a partir del body
+        Mono<Branch> branchMono = request.bodyToMono(CreateBranchRequest.class)
+                .map(franchiseRestMapper::toBranch); // Necesitarás un toBranch en el mapper
+
+        // Combinamos la información del path y del body para llamar al UseCase
+        return branchMono
+                .flatMap(branch -> addBranchToFranchiseUseCase.addBranch(franchiseId, branch))
+                .flatMap(savedBranch -> ServerResponse.status(HttpStatus.CREATED)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(savedBranch))
+                // Manejamos el error "Franchise not found" que definimos en el UseCase
+                .onErrorResume(RuntimeException.class, e -> ServerResponse
+                        .status(HttpStatus.NOT_FOUND) // HTTP 404
+                        .bodyValue(Map.of("error", e.getMessage())));
     }
 
 
