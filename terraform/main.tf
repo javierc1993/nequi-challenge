@@ -150,7 +150,7 @@ resource "aws_ecs_task_definition" "api_task" {
     image = var.ecr_image_uri,
     portMappings = [{ containerPort = 8080, hostPort = 8080 }],
     environment = [
-      { name = "SPRING_R2DBC_URL", value = "r2dbc:postgresql://${aws_db_instance.franchise_db.endpoint}/${var.db_name}" },
+      { name = "SPRING_R2DBC_URL", value = "r2dbc:postgresql://${aws_db_instance.franchise_db.endpoint}/${var.db_name}?sslMode=require" },
       { name = "SPRING_R2DBC_USERNAME", value = var.db_user },
       { name = "SPRING_R2DBC_PASSWORD", value = var.db_password }
     ],
