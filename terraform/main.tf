@@ -74,9 +74,8 @@ resource "aws_db_instance" "franchise_db" {
 
   db_subnet_group_name = aws_db_subnet_group.default.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
-
+  publicly_accessible  = true
   skip_final_snapshot  = true
-  # Ya no necesitamos 'publicly_accessible' porque las subredes por defecto ya lo son.
 }
 
 
