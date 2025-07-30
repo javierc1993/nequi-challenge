@@ -6,17 +6,34 @@ provider "aws" {
 
 # --- 1. BUSCAR LA RED POR DEFECTO (en lugar de crearla) ---
 # Le decimos a Terraform que encuentre la VPC por defecto en la región seleccionada.
-data "aws_vpc" "default" {
-  default = true
+
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+  tags       = { Name = "franchise-vpc" }
 }
 
-# Le decimos a Terraform que encuentre TODAS las subredes dentro de esa VPC por defecto.
-# AWS crea subredes públicas por defecto en cada zona de disponibilidad.
-data "aws_subnets" "default" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
+resource "aws_subnet" "public" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = true # Importante para Fargate
+  tags                    = { Name = "franchise-public-subnet" }
+}
+
+resource "aws_internet_gateway" "gw" {
+  vpc_id = aws_vpc.main.id
+}
+
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.main.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.gw.id
   }
+}
+
+resource "aws_route_table_association" "public_assoc" {
+  subnet_id      = aws_subnet.public.id
+  route_table_id = aws_route_table.public_rt.id
 }
 
 
@@ -24,7 +41,7 @@ data "aws_subnets" "default" {
 # El grupo de seguridad para Fargate ahora se asocia a la VPC por defecto.
 resource "aws_security_group" "fargate_sg" {
   name   = "franchise-fargate-sg"
-  vpc_id = data.aws_vpc.default.id # <-- CAMBIO
+  vpc_id = data.aws_vpc.main.id # <-- CAMBIO
 
   ingress {
     protocol    = "tcp"
@@ -44,7 +61,7 @@ resource "aws_security_group" "fargate_sg" {
 # El grupo de seguridad para RDS también se asocia a la VPC por defecto.
 resource "aws_security_group" "rds_sg" {
   name   = "franchise-rds-sg"
-  vpc_id = data.aws_vpc.default.id # <-- CAMBIO
+  vpc_id = data.aws_vpc.main.id # <-- CAMBIO
 
   ingress {
     protocol        = "tcp"
@@ -59,7 +76,7 @@ resource "aws_security_group" "rds_sg" {
 # El grupo de subredes para RDS ahora usa las subredes por defecto que encontramos.
 resource "aws_db_subnet_group" "default" {
   name       = "franchise-db-subnet-group"
-  subnet_ids = data.aws_subnets.default.ids # <-- CAMBIO
+  subnet_ids = [aws_subnet.public.id] # <-- CAMBIO
 }
 
 resource "aws_db_instance" "franchise_db" {
@@ -80,7 +97,6 @@ resource "aws_db_instance" "franchise_db" {
 
 
 # --- 4. APLICACIÓN (ECS Fargate) ---
-# (Esta sección no necesita cambios en su lógica interna)
 resource "aws_ecs_cluster" "main" {
   name = "franchise-cluster"
 }
@@ -141,7 +157,7 @@ resource "aws_ecs_service" "main" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = data.aws_subnets.default.ids # <-- CAMBIO
+    subnets          = [aws_subnet.public.id] # <-- CAMBIO
     security_groups  = [aws_security_group.fargate_sg.id]
     assign_public_ip = true
   }
