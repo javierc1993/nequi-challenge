@@ -1,3 +1,14 @@
+spring:
+  application:
+    name: resilient-api
+  r2dbc:
+    url: ${SPRING_R2DBC_URL:r2dbc:postgresql://localhost:5432/reactive}
+    username: ${SPRING_R2DBC_USERNAME:postgres}
+    password: ${SPRING_R2DBC_PASSWORD:1234}
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
 management:
   tracing:
     sampling:
