@@ -4,19 +4,35 @@ provider "aws" {
   region = var.aws_region
 }
 
+
 # --- 1. BUSCAR LA RED POR DEFECTO (en lugar de crearla) ---
 # Le decimos a Terraform que encuentre la VPC por defecto en la región seleccionada.
 
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
+  enable_dns_support   = true
+  enable_dns_hostnames = true
   tags       = { Name = "franchise-vpc" }
 }
 
-resource "aws_subnet" "public" {
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+resource "aws_subnet" "public_a" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
+  availability_zone       = data.aws_availability_zones.available.names[0]
   map_public_ip_on_launch = true # Importante para Fargate
-  tags                    = { Name = "franchise-public-subnet" }
+  tags                    = { Name = "franchise-public-subnet-a" }
+}
+
+resource "aws_subnet" "public_b" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.2.0/24"
+  availability_zone       = data.aws_availability_zones.available.names[1]
+  map_public_ip_on_launch = true
+  tags                    = { Name = "franchise-public-subnet-b" }
 }
 
 resource "aws_internet_gateway" "gw" {
@@ -31,8 +47,12 @@ resource "aws_route_table" "public_rt" {
   }
 }
 
-resource "aws_route_table_association" "public_assoc" {
-  subnet_id      = aws_subnet.public.id
+resource "aws_route_table_association" "public_assoc_a" {
+  subnet_id      = aws_subnet.public_a.id
+  route_table_id = aws_route_table.public_rt.id
+}
+resource "aws_route_table_association" "public_assoc_b" {
+  subnet_id      = aws_subnet.public_b.id
   route_table_id = aws_route_table.public_rt.id
 }
 
@@ -41,7 +61,7 @@ resource "aws_route_table_association" "public_assoc" {
 # El grupo de seguridad para Fargate ahora se asocia a la VPC por defecto.
 resource "aws_security_group" "fargate_sg" {
   name   = "franchise-fargate-sg"
-  vpc_id = data.aws_vpc.main.id # <-- CAMBIO
+  vpc_id = aws_vpc.main.id # <-- CAMBIO
 
   ingress {
     protocol    = "tcp"
@@ -61,7 +81,7 @@ resource "aws_security_group" "fargate_sg" {
 # El grupo de seguridad para RDS también se asocia a la VPC por defecto.
 resource "aws_security_group" "rds_sg" {
   name   = "franchise-rds-sg"
-  vpc_id = data.aws_vpc.main.id # <-- CAMBIO
+  vpc_id = aws_vpc.main.id # <-- CAMBIO
 
   ingress {
     protocol        = "tcp"
@@ -74,9 +94,9 @@ resource "aws_security_group" "rds_sg" {
 
 # --- 3. BASE DE DATOS (RDS PostgreSQL) ---
 # El grupo de subredes para RDS ahora usa las subredes por defecto que encontramos.
-resource "aws_db_subnet_group" "default" {
+resource "aws_db_subnet_group" "main" {
   name       = "franchise-db-subnet-group"
-  subnet_ids = [aws_subnet.public.id] # <-- CAMBIO
+  subnet_ids = [aws_subnet.public_a.id, aws_subnet.public_b.id] # <-- CAMBIO
 }
 
 resource "aws_db_instance" "franchise_db" {
@@ -89,7 +109,7 @@ resource "aws_db_instance" "franchise_db" {
   username             = var.db_user
   password             = var.db_password
 
-  db_subnet_group_name = aws_db_subnet_group.default.name
+  db_subnet_group_name = aws_db_subnet_group.main.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   publicly_accessible  = true
   skip_final_snapshot  = true
@@ -157,13 +177,12 @@ resource "aws_ecs_service" "main" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = [aws_subnet.public.id] # <-- CAMBIO
+    subnets          = [aws_subnet.public_a.id, aws_subnet.public_b.id]
     security_groups  = [aws_security_group.fargate_sg.id]
     assign_public_ip = true
   }
 }
 
-# (El ECR Repository no está en el main.tf, pero asegúrate de que exista o añádelo si es necesario)
 resource "aws_ecr_repository" "api_repo" {
   name = "nequi-challenge"
   image_tag_mutability = "MUTABLE"
