@@ -35,3 +35,10 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# Terraform state and credentials
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform.tfvars
+*.tfvars

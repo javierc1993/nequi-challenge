@@ -1,4 +1,4 @@
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 
 -- 1. Tabla de Franquicias (Franchises)
 -- Es la tabla padre de toda la jerarquía.
@@ -41,11 +41,7 @@ CREATE TABLE IF NOT EXISTS products (
         ON DELETE CASCADE -- ¡Importante! Si se borra una sucursal, se borran sus productos en cascada.
 );
 
-CREATE TABLE IF NOT EXISTS users (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(255),
-    email VARCHAR(255)
-);
+
 
 
 
